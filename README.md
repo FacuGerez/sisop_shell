@@ -10,3 +10,7 @@
 - [ ] procesos en segundo plano JULIAN
 
 ## Tareas
+
+- [ ] cd
+- [ ] exit
+- [ ] pwd
