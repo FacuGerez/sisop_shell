@@ -1,4 +1,6 @@
 #include "exec.h"
+#include "utilsExec.h"
+#include "types.h"
 
 // sets "key" with the key part of "arg"
 // and null-terminates it
@@ -48,8 +50,12 @@ get_environ_value(char *arg, char *value, int idx)
 static void
 set_environ_vars(char **eargv, int eargc)
 {
-	// Your code here
+	// si no entiendo mal, deberia 
+	// por cada eargv, obtener el index con block contains
+	// hacer getenvironkey, y setear el getenvronvalue? algo así
+
 }
+
 
 // opens the file in which the stdin/stdout/stderr
 // flow will be redirected, and returns
@@ -87,8 +93,8 @@ exec_cmd(struct cmd *cmd)
 	switch (cmd->type) {
 	case EXEC:
 		// spawns a command
-		//
-		// Your code here
+		e = (struct execcmd *) cmd;
+		run_exec_cmd(e);
 		printf("Commands are not yet implemented\n");
 		_exit(-1);
 		break;
