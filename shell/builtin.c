@@ -1,8 +1,7 @@
 #include "builtin.h"
 #include "defs.h"
-#include "parsing.h"
 #include <string.h>
-
+#include "utils.h"
 
 #define EXIT_COMMAND_KEYWORD "exit"
 #define CD_COMMAND_KEYWORD "cd"
@@ -41,18 +40,16 @@ cd(char *cmd)
 
     bool goHome = strcmp(right, "") == 0;
 	int open;
-	printf("%s", right);
 	if (goHome) {
 		open = chdir(right); // deberia pasar el path de home
 	} else {
 		open = chdir(right);
 	}
 
-	// actualizo prompt aca
-	// printeo
-	// no se si algo mas
+	char directory[BUFLEN];
+	char *actual = getcwd(directory, sizeof(directory));
+	strncpy(prompt, actual, PRMTLEN - 1);
 
-	//getcwd();
 
 	return open;
 }
