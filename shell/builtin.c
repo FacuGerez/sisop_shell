@@ -1,10 +1,12 @@
 #include "builtin.h"
+#include "defs.h"
 #include "parsing.h"
 #include <string.h>
 
 
 #define EXIT_COMMAND_KEYWORD "exit"
 #define CD_COMMAND_KEYWORD "cd"
+#define PWD_COMMAND_KEYWORD "pwd"
 
 // returns true if the 'exit' call
 // should be performed
@@ -58,10 +60,19 @@ cd(char *cmd)
 // 	return true)
 int
 pwd(char *cmd)
-{
-	// Your code here
+{	
+	if (strcmp(cmd, PWD_COMMAND_KEYWORD) != 0) {
+		return 0;
+	}
 
-	return 0;
+	char directory[BUFLEN];
+	if (!getcwd(directory, sizeof(directory))) {
+		printf("ERROR\n");
+	} else {
+		printf("%s\n", directory);
+	}
+
+	return 1;
 }
 
 // returns true if `history` was invoked
