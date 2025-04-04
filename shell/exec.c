@@ -50,9 +50,7 @@ get_environ_value(char *arg, char *value, int idx)
 static void
 set_environ_vars(char **eargv, int eargc)
 {
-	// si no entiendo mal, deberia 
-	// por cada eargv, obtener el index con block contains
-	// hacer getenvironkey, y setear el getenvronvalue? algo así
+	// edit: lo hace lautaro asique tengo que esperar a eso
 
 }
 
