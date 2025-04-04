@@ -1,4 +1,10 @@
 #include "builtin.h"
+#include "parsing.h"
+#include <string.h>
+
+
+#define EXIT_COMMAND_KEYWORD "exit"
+#define CD_COMMAND_KEYWORD "cd"
 
 // returns true if the 'exit' call
 // should be performed
@@ -7,9 +13,7 @@
 int
 exit_shell(char *cmd)
 {
-	// Your code here
-
-	return 0;
+	return strcmp(cmd, EXIT_COMMAND_KEYWORD) == 0;
 }
 
 // returns true if "chdir" was performed
@@ -26,10 +30,25 @@ exit_shell(char *cmd)
 //  2. cmd = ['c','d', '\0']
 int
 cd(char *cmd)
-{
-	// Your code here
+{	
+	char *right = split_line(cmd, ' ');
 
-	return 0;
+	if (strcmp(cmd, CD_COMMAND_KEYWORD) != 0) {
+		return 0;
+	}
+
+    bool goHome = strcmp(right, "") == 0;
+	int open;
+	printf("%s", right);
+	if (goHome) {
+		open = chdir(right); // deberia pasar el path de home
+	} else {
+		open = chdir(right);
+	}
+
+	//getcwd();
+
+	return open;
 }
 
 // returns true if 'pwd' was invoked
