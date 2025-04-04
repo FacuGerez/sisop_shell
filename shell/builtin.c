@@ -48,6 +48,10 @@ cd(char *cmd)
 		open = chdir(right);
 	}
 
+	// actualizo prompt aca
+	// printeo
+	// no se si algo mas
+
 	//getcwd();
 
 	return open;
