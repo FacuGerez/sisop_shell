@@ -48,7 +48,21 @@ get_environ_value(char *arg, char *value, int idx)
 static void
 set_environ_vars(char **eargv, int eargc)
 {
-	// Your code here
+	for (int i = 0; i < eargc; i++) {
+		char *arg = eargv[i];
+		char key[BUFLEN];
+		char value[BUFLEN];
+
+		int eq_idx = block_contains(arg, '=');
+		if (eq_idx == -1) {
+			continue;
+		}
+
+		get_environ_key(arg, key);
+		get_environ_value(arg, value, eq_idx);
+
+		setenv(key, value, 1);  // 1 = overwrite if exists
+	}
 }
 
 // opens the file in which the stdin/stdout/stderr
