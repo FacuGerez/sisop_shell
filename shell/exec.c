@@ -103,6 +103,10 @@ exec_cmd(struct cmd *cmd)
 		// spawns a command
 		//
 		// Your code here
+		//
+		//next line should go after fork()
+		set_environ_vars(e->eargv,e->eargc);
+
 		printf("Commands are not yet implemented\n");
 		_exit(-1);
 		break;
@@ -124,6 +128,10 @@ exec_cmd(struct cmd *cmd)
 		// is greater than zero
 		//
 		// Your code here
+		//
+		//next line should go after fork()
+		set_environ_vars(r->eargv,r->eargc);
+		
 		printf("Redirections are not yet implemented\n");
 		_exit(-1);
 		break;
