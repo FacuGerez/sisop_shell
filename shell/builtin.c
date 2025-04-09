@@ -1,6 +1,6 @@
 #include "builtin.h"
 #include "defs.h"
-#include <string.h>
+#include "string.h"
 #include "utils.h"
 
 #define EXIT_COMMAND_KEYWORD "exit"
@@ -31,25 +31,26 @@ exit_shell(char *cmd)
 //  2. cmd = ['c','d', '\0']
 int
 cd(char *cmd)
-{	
-	char *right = split_line(cmd, ' ');
-
-	if (strcmp(cmd, CD_COMMAND_KEYWORD) != 0) {
+{
+	// TODO: Refactorizar.
+	if (!(strncmp(cmd, CD_COMMAND_KEYWORD, 2) == 0 &&
+	      (cmd[2] == '\0' || cmd[2] == ' '))) {
 		return 0;
 	}
 
-    bool goHome = strcmp(right, "") == 0;
+	const char *path = split_line(cmd, ' ');
+
+	const bool go_home = strcmp(path, "") == 0;
 	int open;
-	if (goHome) {
-		open = chdir(right); // deberia pasar el path de home
+	if (go_home) {
+		open = chdir(getenv("HOME"));  // TODO: Revisar getenv.
 	} else {
-		open = chdir(right);
+		open = chdir(path);
 	}
 
 	char directory[BUFLEN];
-	char *actual = getcwd(directory, sizeof(directory));
+	const char *actual = getcwd(directory, sizeof(directory));
 	strncpy(prompt, actual, PRMTLEN - 1);
-
 
 	return open;
 }
@@ -61,7 +62,7 @@ cd(char *cmd)
 // 	return true)
 int
 pwd(char *cmd)
-{	
+{
 	if (strcmp(cmd, PWD_COMMAND_KEYWORD) != 0) {
 		return 0;
 	}

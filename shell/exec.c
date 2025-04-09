@@ -53,24 +53,6 @@ set_environ_vars(char **eargv, int eargc)
 	// edit: lo hace lautaro asique tengo que esperar a eso
 }
 
-// opens the file in which the stdin/stdout/stderr
-// flow will be redirected, and returns
-// the file descriptor
-//
-// Find out what permissions it needs.
-// Does it have to be closed after the execve(2) call?
-//
-// Hints:
-// - if O_CREAT is used, add S_IWUSR and S_IRUSR
-// 	to make it a readable normal file
-static int
-open_redir_fd(char *file, int flags)
-{
-	// Your code here
-
-	return -1;
-}
-
 // executes a command - does not return
 void
 exec_cmd(struct cmd *cmd)
@@ -112,10 +94,14 @@ exec_cmd(struct cmd *cmd)
 		// These are safe because if the file does not exist,
 		// then a new file is created.
 		if (strlen(r->out_file))
-			redirect_fd(STDOUT_FILENO, r->out_file, O_RDWR | O_CREAT | O_TRUNC);
+			redirect_fd(STDOUT_FILENO,
+			            r->out_file,
+			            O_RDWR | O_CREAT | O_TRUNC);
 
 		if (strlen(r->err_file))
-			redirect_fd(STDERR_FILENO, r->err_file, O_RDWR | O_CREAT | O_TRUNC);
+			redirect_fd(STDERR_FILENO,
+			            r->err_file,
+			            O_RDWR | O_CREAT | O_TRUNC);
 
 		run_exec_cmd(r);
 
