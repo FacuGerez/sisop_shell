@@ -1,4 +1,6 @@
 #include "exec.h"
+#include "utils_exec.h"
+#include "types.h"
 
 // sets "key" with the key part of "arg"
 // and null-terminates it
@@ -48,7 +50,7 @@ get_environ_value(char *arg, char *value, int idx)
 static void
 set_environ_vars(char **eargv, int eargc)
 {
-	// Your code here
+	// edit: lo hace lautaro asique tengo que esperar a eso
 }
 
 // opens the file in which the stdin/stdout/stderr
@@ -92,6 +94,11 @@ redirect_fd(int fd, char *filename, int flags)
 }
 
 // executes a command - does not return
+//
+// Hint:
+// - check how the 'cmd' structs are defined
+// 	in types.h
+// - casting could be a good option
 void
 exec_cmd(struct cmd *cmd)
 {
@@ -105,10 +112,9 @@ exec_cmd(struct cmd *cmd)
 	case EXEC:
 		// spawns a command
 		e = (struct execcmd *) cmd;
-
-		// execvpe(e->argv[FILENAME], e->argv, e->eargv);
-		execvp(e->argv[FILENAME], e->argv);
-
+		run_exec_cmd(e);
+		printf("Commands are not yet implemented\n");
+		_exit(-1);
 		break;
 
 	case BACK: {
