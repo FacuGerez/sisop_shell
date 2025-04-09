@@ -46,6 +46,14 @@
 #define READ 0
 #define WRITE 1
 
+// standard fds
+#define STDIN 0
+#define STDOUT 1
+#define STDERR 2
+
+// argv indexes
+#define FILENAME 0
+
 #define EXIT_SHELL 1
 
 #endif  // DEFS_H

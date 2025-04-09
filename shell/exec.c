@@ -53,23 +53,44 @@ set_environ_vars(char **eargv, int eargc)
 	// edit: lo hace lautaro asique tengo que esperar a eso
 }
 
-
 // opens the file in which the stdin/stdout/stderr
 // flow will be redirected, and returns
 // the file descriptor
-//
-// Find out what permissions it needs.
-// Does it have to be closed after the execve(2) call?
-//
-// Hints:
-// - if O_CREAT is used, add S_IWUSR and S_IRUSR
-// 	to make it a readable normal file
+// returns -1 if opening fails
 static int
 open_redir_fd(char *file, int flags)
 {
-	// Your code here
+	return open(file, flags, S_IWUSR | S_IRUSR);
+}
 
-	return -1;
+// Redirects a file descriptor to a file.
+// The user may specify the flags to use when
+// opening the file.
+// If the file indicates another file descriptor
+// (using '&'), then redirects to that other file
+// descriptor.
+// IMPORTANT: In the last case, the file descriptor
+// IS NOT CLOSED (to avoid cases where, for example,
+// stderr is redirected to stdout, but stdout is
+// still needed for the program to work).
+// The user may close it if needed.
+// Returns the file descriptor on success,
+// or -1 if the opening fails.
+static int
+redirect_fd(int fd, char *filename, int flags)
+{
+	int file_fd;
+	if (filename[0] == '&') {
+		file_fd = strtol(&filename[1], NULL, 10);
+		dup2(file_fd, fd);
+	} else {
+		file_fd = open_redir_fd(filename, O_CLOEXEC | flags);
+		if (file_fd != -1) {
+			dup2(file_fd, fd);
+			close(file_fd);
+		}
+	}
+	return file_fd;
 }
 
 // executes a command - does not return
@@ -107,14 +128,26 @@ exec_cmd(struct cmd *cmd)
 
 	case REDIR: {
 		// changes the input/output/stderr flow
-		//
-		// To check if a redirection has to be performed
-		// verify if file name's length (in the execcmd struct)
-		// is greater than zero
-		//
-		// Your code here
-		printf("Redirections are not yet implemented\n");
-		_exit(-1);
+		r = (struct execcmd *) cmd;
+
+		// This case is the only one that might fail if the
+		// file does not exist.
+		if (strlen(r->in_file) &&
+		    redirect_fd(STDIN, r->in_file, O_RDONLY) == -1)
+			break;
+
+		// These are safe because if the file does not exist,
+		// then a new file is created.
+		if (strlen(r->out_file))
+			redirect_fd(STDOUT, r->out_file, O_RDWR | O_CREAT | O_TRUNC);
+
+		if (strlen(r->err_file))
+			redirect_fd(STDERR, r->err_file, O_RDWR | O_CREAT | O_TRUNC);
+
+
+		// execvpe(e->argv[FILENAME], e->argv, e->eargv);
+		execvp(r->argv[FILENAME], r->argv);
+
 		break;
 	}
 
