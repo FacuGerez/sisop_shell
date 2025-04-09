@@ -88,16 +88,16 @@ exec_cmd(struct cmd *cmd)
 		// This case is the only one that might fail if the
 		// file does not exist.
 		if (strlen(r->in_file) &&
-		    redirect_fd(STDIN, r->in_file, O_RDONLY) == -1)
+		    redirect_fd(STDIN_FILENO, r->in_file, O_RDONLY) == -1)
 			exit(EXIT_FAILURE);
 
 		// These are safe because if the file does not exist,
 		// then a new file is created.
 		if (strlen(r->out_file))
-			redirect_fd(STDOUT, r->out_file, O_RDWR | O_CREAT | O_TRUNC);
+			redirect_fd(STDOUT_FILENO, r->out_file, O_RDWR | O_CREAT | O_TRUNC);
 
 		if (strlen(r->err_file))
-			redirect_fd(STDERR, r->err_file, O_RDWR | O_CREAT | O_TRUNC);
+			redirect_fd(STDERR_FILENO, r->err_file, O_RDWR | O_CREAT | O_TRUNC);
 
 		run_exec_cmd(r);
 

@@ -7,7 +7,7 @@ void
 run_exec_cmd(struct execcmd *cmds)
 {
 	// TODO: I'm not searching in path the executable, I dont know how to do it.
-	execvp(cmds->argv[0], cmds->argv);
+	execvp(cmds->argv[FILENAME], cmds->argv);
 	// if I return from the execvp call, it means I have an error.
 	free_command((struct cmd *) cmds);
 	exit(EXIT_FAILURE);
