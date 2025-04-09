@@ -87,7 +87,7 @@ concatenate_str(char *dest, const char *src)
 
 // Prints information of a background process' status.
 void
-print_back_status_info(pid_t pid)
+print_back_status_info(pid_t pid, int status)
 {
 	const char *action;
 

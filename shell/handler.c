@@ -13,7 +13,7 @@ sigchild_handler(int signum)
 	// be "merged" into only one signal, if one finishes
 	// immediately after another.
 	while ((pid = waitpid(0, &status, WNOHANG)) > 0) {
-		print_back_status_info(pid);
+		print_back_status_info(pid, status);
 	}
 }
 
