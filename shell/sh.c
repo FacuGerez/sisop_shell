@@ -1,6 +1,7 @@
 #include "defs.h"
 #include "readline.h"
 #include "runcmd.h"
+#include "handler.h"
 
 char prompt[PRMTLEN] = { 0 };
 
@@ -35,8 +36,11 @@ int
 main(void)
 {
 	init_shell();
+	const stack_t ss = init_sigchild_handler();
 
 	run_shell();
+
+	free_signalstack(ss);
 
 	return 0;
 }

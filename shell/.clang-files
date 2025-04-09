@@ -20,5 +20,7 @@ types.h
 utils.c
 utils.h
 tests/reflector.c
+handler.c
+handler.h
 utils_exec.c
 utils_exec.h
