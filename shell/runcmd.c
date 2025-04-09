@@ -49,18 +49,26 @@ run_cmd(char *cmd)
 	parsed->pid = p;
 
 	// background process special treatment
-	// Hint:
-	// - check if the process is
-	//		going to be run in the 'back'
-	// - print info about it with
-	// 	'print_back_info()'
-	//
-	// Your code here
+	if (parsed->type == BACK) {
+		// Do not wait the back process, allowing
+		// the shell to continue running.
+		// The child PGID after fork is the same
+		// as the parent PGID, so it can be waited
+		// later with wait(0, ...).
+		print_back_info(parsed);
+	} else {
+		// Sets the child PGID to be the same as the
+		// child PID (foreground process).
+		// This means that the sigchild handler won't
+		// wait this process, since the PGID is not
+		// the same as the parent PGID.
+		setpgid(parsed->pid, 0);
 
-	// waits for the process to finish
-	waitpid(p, &status, 0);
+		// waits for the process to finish
+		waitpid(p, &status, 0);
 
-	print_status_info(parsed);
+		print_status_info(parsed);
+	}
 
 	free_command(parsed);
 
