@@ -1,4 +1,6 @@
 #include "exec.h"
+#include "utils_exec.h"
+#include "types.h"
 
 // sets "key" with the key part of "arg"
 // and null-terminates it
@@ -48,7 +50,7 @@ get_environ_value(char *arg, char *value, int idx)
 static void
 set_environ_vars(char **eargv, int eargc)
 {
-	// Your code here
+	// edit: lo hace lautaro asique tengo que esperar a eso
 }
 
 // opens the file in which the stdin/stdout/stderr
@@ -70,11 +72,6 @@ open_redir_fd(char *file, int flags)
 }
 
 // executes a command - does not return
-//
-// Hint:
-// - check how the 'cmd' structs are defined
-// 	in types.h
-// - casting could be a good option
 void
 exec_cmd(struct cmd *cmd)
 {
@@ -87,10 +84,10 @@ exec_cmd(struct cmd *cmd)
 	switch (cmd->type) {
 	case EXEC:
 		// spawns a command
-		//
-		// Your code here
-		printf("Commands are not yet implemented\n");
-		_exit(-1);
+		e = (struct execcmd *) cmd;
+
+		run_exec_cmd(e);
+
 		break;
 
 	case BACK: {
@@ -104,14 +101,24 @@ exec_cmd(struct cmd *cmd)
 
 	case REDIR: {
 		// changes the input/output/stderr flow
-		//
-		// To check if a redirection has to be performed
-		// verify if file name's length (in the execcmd struct)
-		// is greater than zero
-		//
-		// Your code here
-		printf("Redirections are not yet implemented\n");
-		_exit(-1);
+		r = (struct execcmd *) cmd;
+
+		// This case is the only one that might fail if the
+		// file does not exist.
+		if (strlen(r->in_file) &&
+		    redirect_fd(STDIN_FILENO, r->in_file, O_RDONLY) == -1)
+			exit(EXIT_FAILURE);
+
+		// These are safe because if the file does not exist,
+		// then a new file is created.
+		if (strlen(r->out_file))
+			redirect_fd(STDOUT_FILENO, r->out_file, O_RDWR | O_CREAT | O_TRUNC);
+
+		if (strlen(r->err_file))
+			redirect_fd(STDERR_FILENO, r->err_file, O_RDWR | O_CREAT | O_TRUNC);
+
+		run_exec_cmd(r);
+
 		break;
 	}
 
