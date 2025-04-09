@@ -1,4 +1,11 @@
 #include "builtin.h"
+#include "defs.h"
+#include "string.h"
+#include "utils.h"
+
+#define EXIT_COMMAND_KEYWORD "exit"
+#define CD_COMMAND_KEYWORD "cd"
+#define PWD_COMMAND_KEYWORD "pwd"
 
 // returns true if the 'exit' call
 // should be performed
@@ -7,9 +14,7 @@
 int
 exit_shell(char *cmd)
 {
-	// Your code here
-
-	return 0;
+	return strcmp(cmd, EXIT_COMMAND_KEYWORD) == 0;
 }
 
 // returns true if "chdir" was performed
@@ -27,9 +32,27 @@ exit_shell(char *cmd)
 int
 cd(char *cmd)
 {
-	// Your code here
+	// TODO: Refactorizar.
+	if (!(strncmp(cmd, CD_COMMAND_KEYWORD, 2) == 0 &&
+	      (cmd[2] == '\0' || cmd[2] == ' '))) {
+		return 0;
+	}
 
-	return 0;
+	const char *path = split_line(cmd, ' ');
+
+	const bool go_home = strcmp(path, "") == 0;
+	int open;
+	if (go_home) {
+		open = chdir(getenv("HOME"));  // TODO: Revisar getenv.
+	} else {
+		open = chdir(path);
+	}
+
+	char directory[BUFLEN];
+	const char *actual = getcwd(directory, sizeof(directory));
+	strncpy(prompt, actual, PRMTLEN - 1);
+
+	return open;
 }
 
 // returns true if 'pwd' was invoked
@@ -40,9 +63,18 @@ cd(char *cmd)
 int
 pwd(char *cmd)
 {
-	// Your code here
+	if (strcmp(cmd, PWD_COMMAND_KEYWORD) != 0) {
+		return 0;
+	}
 
-	return 0;
+	char directory[BUFLEN];
+	if (!getcwd(directory, sizeof(directory))) {
+		printf("ERROR\n");
+	} else {
+		printf("%s\n", directory);
+	}
+
+	return 1;
 }
 
 // returns true if `history` was invoked

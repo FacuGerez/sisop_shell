@@ -46,6 +46,9 @@
 #define READ 0
 #define WRITE 1
 
+// argv indexes
+#define FILENAME 0
+
 #define EXIT_SHELL 1
 
 #endif  // DEFS_H
