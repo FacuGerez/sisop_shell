@@ -1,4 +1,11 @@
 #include "builtin.h"
+#include "defs.h"
+#include <string.h>
+#include "utils.h"
+
+#define EXIT_COMMAND_KEYWORD "exit"
+#define CD_COMMAND_KEYWORD "cd"
+#define PWD_COMMAND_KEYWORD "pwd"
 
 // returns true if the 'exit' call
 // should be performed
@@ -7,9 +14,7 @@
 int
 exit_shell(char *cmd)
 {
-	// Your code here
-
-	return 0;
+	return strcmp(cmd, EXIT_COMMAND_KEYWORD) == 0;
 }
 
 // returns true if "chdir" was performed
@@ -26,10 +31,27 @@ exit_shell(char *cmd)
 //  2. cmd = ['c','d', '\0']
 int
 cd(char *cmd)
-{
-	// Your code here
+{	
+	char *right = split_line(cmd, ' ');
 
-	return 0;
+	if (strcmp(cmd, CD_COMMAND_KEYWORD) != 0) {
+		return 0;
+	}
+
+    bool goHome = strcmp(right, "") == 0;
+	int open;
+	if (goHome) {
+		open = chdir(right); // deberia pasar el path de home
+	} else {
+		open = chdir(right);
+	}
+
+	char directory[BUFLEN];
+	char *actual = getcwd(directory, sizeof(directory));
+	strncpy(prompt, actual, PRMTLEN - 1);
+
+
+	return open;
 }
 
 // returns true if 'pwd' was invoked
@@ -39,10 +61,19 @@ cd(char *cmd)
 // 	return true)
 int
 pwd(char *cmd)
-{
-	// Your code here
+{	
+	if (strcmp(cmd, PWD_COMMAND_KEYWORD) != 0) {
+		return 0;
+	}
 
-	return 0;
+	char directory[BUFLEN];
+	if (!getcwd(directory, sizeof(directory))) {
+		printf("ERROR\n");
+	} else {
+		printf("%s\n", directory);
+	}
+
+	return 1;
 }
 
 // returns true if `history` was invoked
