@@ -1,7 +1,9 @@
 #include "runcmd.h"
 
+#include "handler.h"
+
 int status = 0;
-struct cmd *parsed_pipe;
+struct cmd *parsed_pipe = NULL;
 
 // runs the command in 'cmd'
 int
@@ -36,11 +38,24 @@ run_cmd(char *cmd)
 
 	// forks and run the command
 	if ((p = fork()) == 0) {
+		// Sets the child PGID to be the same as the
+		// child PID (foreground process).
+		// This means that the sigchild handler won't
+		// wait this process, since the PGID is not
+		// the same as the parent PGID.
+		if (parsed->type != BACK)
+			setpgid(0, 0);
+
 		// keep a reference
 		// to the parsed pipe cmd
 		// so it can be freed later
 		if (parsed->type == PIPE)
 			parsed_pipe = parsed;
+
+		// Child process inherits the sigchild handler
+		// and the alternative stack. Disabling it avoids
+		// unwanted waits.
+		disable_sigchild_handler();
 
 		exec_cmd(parsed);
 	}
@@ -52,18 +67,8 @@ run_cmd(char *cmd)
 	if (parsed->type == BACK) {
 		// Do not wait the back process, allowing
 		// the shell to continue running.
-		// The child PGID after fork is the same
-		// as the parent PGID, so it can be waited
-		// later with wait(0, ...).
 		print_back_info(parsed);
 	} else {
-		// Sets the child PGID to be the same as the
-		// child PID (foreground process).
-		// This means that the sigchild handler won't
-		// wait this process, since the PGID is not
-		// the same as the parent PGID.
-		setpgid(parsed->pid, 0);
-
 		// waits for the process to finish
 		waitpid(p, &status, 0);
 

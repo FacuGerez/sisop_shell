@@ -1,15 +1,22 @@
 #include "utils_exec.h"
+
+#include "exec.h"
 #include "types.h"
 #include "freecmd.h"
 
 // Runs the command.
 void
-run_exec_cmd(struct execcmd *cmds)
+run_exec_cmd(struct execcmd *cmd)
 {
-	// TODO: I'm not searching in path the executable, I dont know how to do it.
-	execvp(cmds->argv[FILENAME], cmds->argv);
-	// if I return from the execvp call, it means I have an error.
-	free_command((struct cmd *) cmds);
+	// execvpe(cmds->argv[FILENAME], cmds->argv, cmds->eargv);
+	execvp(cmd->argv[FILENAME], cmd->argv);
+	// If I return from the execvp call, it means I have an error.
+	if (parsed_pipe != NULL) {
+		free_command(parsed_pipe);
+		parsed_pipe = NULL;
+	} else {
+		free_command((struct cmd *) cmd);
+	}
 	exit(EXIT_FAILURE);
 }
 
@@ -18,7 +25,7 @@ run_exec_cmd(struct execcmd *cmds)
 // the file descriptor
 // returns -1 if opening fails
 int
-open_redir_fd(char *file, int flags)
+open_redir_fd(const char *file, int flags)
 {
 	return open(file, flags, S_IWUSR | S_IRUSR);
 }
@@ -37,14 +44,14 @@ open_redir_fd(char *file, int flags)
 // Returns the file descriptor on success,
 // or -1 if the opening fails.
 int
-redirect_fd(int fd, char *filename, int flags)
+redirect_fd(int fd, const char *file, int flags)
 {
 	int file_fd;
-	if (filename[0] == '&') {
-		file_fd = strtol(&filename[1], NULL, 10);
+	if (file[0] == '&') {
+		file_fd = (int) strtol(&file[1], NULL, 10);
 		dup2(file_fd, fd);
 	} else {
-		file_fd = open_redir_fd(filename, O_CLOEXEC | flags);
+		file_fd = open_redir_fd(file, O_CLOEXEC | flags);
 		if (file_fd != -1) {
 			dup2(file_fd, fd);
 			close(file_fd);

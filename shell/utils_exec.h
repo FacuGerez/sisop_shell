@@ -3,10 +3,10 @@
 
 #include "types.h"
 
-void run_exec_cmd(struct execcmd *cmds);
+void run_exec_cmd(struct execcmd *cmd);
 
-int open_redir_fd(char *file, int flags);
+int open_redir_fd(const char *file, int flags);
 
-int redirect_fd(int fd, char *filename, int flags);
+int redirect_fd(int fd, const char *file, int flags);
 
 #endif
