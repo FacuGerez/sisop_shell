@@ -1,6 +1,10 @@
 #include "exec.h"
+
+#include "freecmd.h"
 #include "utils_exec.h"
 #include "types.h"
+
+typedef int pipe_t[2];
 
 // sets "key" with the key part of "arg"
 // and null-terminates it
@@ -57,24 +61,19 @@ set_environ_vars(char **eargv, int eargc)
 void
 exec_cmd(struct cmd *cmd)
 {
-	// To be used in the different cases
-	struct execcmd *e;
-	struct backcmd *b;
-	struct execcmd *r;
-	struct pipecmd *p;
-
 	switch (cmd->type) {
-	case EXEC:
+	case EXEC: {
 		// spawns a command
-		e = (struct execcmd *) cmd;
+		struct execcmd *e = (struct execcmd *) cmd;
 
 		run_exec_cmd(e);
 
 		break;
+	}
 
 	case BACK: {
 		// runs a command in background
-		b = (struct backcmd *) cmd;
+		struct backcmd *b = (struct backcmd *) cmd;
 
 		exec_cmd(b->c);
 
@@ -83,7 +82,7 @@ exec_cmd(struct cmd *cmd)
 
 	case REDIR: {
 		// changes the input/output/stderr flow
-		r = (struct execcmd *) cmd;
+		struct execcmd *r = (struct execcmd *) cmd;
 
 		// This case is the only one that might fail if the
 		// file does not exist.
@@ -110,61 +109,57 @@ exec_cmd(struct cmd *cmd)
 
 	case PIPE: {
 		// pipes two commands
-		//
-		// Your code here
-		struct pipecmd *pipe_cmd = (struct pipecmd *) cmd;
-		struct cmd *left = pipe_cmd->leftcmd;
-		struct cmd *right = pipe_cmd->rightcmd;
+		struct pipecmd *p = (struct pipecmd *) cmd;
+		pid_t left_cpid, right_cpid;
 
-		int finish_status = EXIT_SUCCESS;
-		int pipefd[2];
-		if (pipe(pipefd) == -1) {
-			perror("Error creating pipe");
-			finish_status = EXIT_FAILURE;
-			exit(finish_status);
+		pipe_t pipe_fd;
+		if (pipe(pipe_fd) == -1) {
+			exit(EXIT_FAILURE);
 		}
 
-		pid_t fp = fork();
-		if (fp == 0) {
-			close(pipefd[0]);  // close read end of the pipe
-			dup2(pipefd[1], STDOUT_FILENO);  // redirect stdout to pipe
-			close(pipefd[1]);  // close write end of the pipe
-			// child process
-			exec_cmd(left);
-		} else if (fp < 0) {
-			perror("Error created a new process");
-			finish_status = EXIT_FAILURE;
-			close(pipefd[0]);  // close read end of the pipe
-			close(pipefd[1]);  // close write end of the pipe
-		} else {
-			// parent process
-			pid_t fp2 = fork();
-			if (fp2 == 0) {
-				close(pipefd[1]);  // close write end of the pipe
-				dup2(pipefd[0],
-				     STDIN_FILENO);  // redirect stdin to pipe
-				close(pipefd[0]);  // close read end of the pipe
-				// child process
-				exec_cmd(right);
-			} else if (fp2 < 0) {
-				perror("Error created a new process");
-				finish_status = EXIT_FAILURE;
-				close(pipefd[0]);  // close read end of the pipe
-				close(pipefd[1]);  // close write end of the pipe
-				waitpid(fp, NULL, 0);
-			} else {
-				close(pipefd[0]);  // close read end of the pipe
-				close(pipefd[1]);  // close write end of the pipe
-				waitpid(fp, NULL, 0);
-				waitpid(fp2, NULL, 0);
-			}
+		if ((left_cpid = fork()) < 0) {
+			exit(EXIT_FAILURE);
 		}
-		// free the memory allocated
-		// for the pipe tree structure
-		free_command(parsed_pipe);
-		parsed_pipe = NULL;
-		exit(finish_status);
-		break;
+		if (left_cpid == 0) {
+			// Left process' stdout is redirected
+			// to the pipe's write end.
+			close(pipe_fd[READ]);
+			dup2(pipe_fd[WRITE], STDOUT_FILENO);
+			close(pipe_fd[WRITE]);
+			exec_cmd(p->leftcmd);
+		}
+
+		if ((right_cpid = fork()) < 0) {
+			exit(EXIT_FAILURE);
+		}
+		if (right_cpid == 0) {
+			// Right process' stdin is redirected
+			// to the pipe's read end.
+			close(pipe_fd[WRITE]);
+			dup2(pipe_fd[READ], STDIN_FILENO);
+			close(pipe_fd[READ]);
+			exec_cmd(p->rightcmd);
+		}
+
+		// Parent process does not need these
+		// fds anymore.
+		close(pipe_fd[READ]);
+		close(pipe_fd[WRITE]);
+
+		// Wait for both child processes.
+		waitpid(left_cpid, NULL, 0);
+		waitpid(right_cpid, NULL, 0);
+
+		if (parsed_pipe != NULL) {
+			free_command(parsed_pipe);
+			parsed_pipe = NULL;
+		}
+
+		exit(EXIT_SUCCESS);
+	}
+
+	default: {
+		exit(EXIT_FAILURE);
 	}
 	}
 }
