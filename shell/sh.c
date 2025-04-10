@@ -36,11 +36,11 @@ int
 main(void)
 {
 	init_shell();
-	const stack_t ss = init_sigchild_handler();
+	init_sigchild_handler();
 
 	run_shell();
 
-	free_signalstack(ss);
+	free_signalstack();
 
 	return 0;
 }

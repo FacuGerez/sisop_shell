@@ -1,11 +1,10 @@
 #ifndef HANDLER_H
 #define HANDLER_H
 
-#include "defs.h"
-#include "types.h"
+void init_sigchild_handler(void);
 
-stack_t init_sigchild_handler(void);
+void disable_sigchild_handler(void);
 
-void free_signalstack(stack_t ss);
+void free_signalstack(void);
 
 #endif

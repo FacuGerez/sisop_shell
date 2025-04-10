@@ -2,6 +2,9 @@
 
 #include "printstatus.h"
 
+stack_t ss;
+struct sigaction sa;
+
 // Signal handler to be executed on SIGCHLD.
 static void
 sigchild_handler(int signum)
@@ -19,12 +22,10 @@ sigchild_handler(int signum)
 
 // Initializes the sigchild handler on an alternative
 // stack.
-stack_t
+void
 init_sigchild_handler()
 {
 	// Initialize alternative stack for signal handler.
-	stack_t ss;
-
 	ss.ss_sp = malloc(SIGSTKSZ);
 	if (ss.ss_sp == NULL) {
 		exit(EXIT_FAILURE);
@@ -37,8 +38,6 @@ init_sigchild_handler()
 	}
 
 	// Initialize signal handler.
-	struct sigaction sa;
-
 	// SA_ONSTACK indicates that the handler will use the
 	// alternative stack.
 	// SA_RESTART allows syscalls that might be interrupted
@@ -50,13 +49,25 @@ init_sigchild_handler()
 	if (sigaction(SIGCHLD, &sa, NULL) == -1) {
 		exit(EXIT_FAILURE);
 	}
+}
 
-	return ss;
+// Disables the sigchild handler and frees the
+// alternative stack.
+void
+disable_sigchild_handler(void)
+{
+	ss.ss_flags = SS_DISABLE;
+	sigaltstack(&ss, NULL);
+
+	sa.sa_handler = SIG_DFL;
+	sigaction(SIGCHLD, &sa, NULL);
+
+	free_signalstack();
 }
 
 // Frees the alternative stack.
 void
-free_signalstack(stack_t ss)
+free_signalstack(void)
 {
 	if (ss.ss_sp != NULL) {
 		free(ss.ss_sp);
