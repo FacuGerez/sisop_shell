@@ -101,9 +101,16 @@ parse_environ_var(struct execcmd *c, char *arg)
 static char *
 expand_environ_var(char *arg)
 {
-	// Your code here
+	if (arg[0] != '$')
+		return arg;
 
-	return arg;
+	char *serch = arg + 1;
+	char *value = NULL;
+	if ((value = getenv(serch)) == NULL)
+		value = (char *) "";
+
+	free(arg);
+	return value;
 }
 
 // parses one single command having into account:
