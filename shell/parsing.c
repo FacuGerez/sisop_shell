@@ -104,9 +104,9 @@ expand_environ_var(char *arg)
 	if (arg[0] != '$')
 		return arg;
 
-	char *serch = arg + 1;
+	char *search = arg + 1;
 	char *value = NULL;
-	value = getenv(serch);
+	value = getenv(search);
 
 	free(arg);
 	return (value && strlen(value) > 0) ? strdup(value) : NULL;
