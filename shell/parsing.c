@@ -106,11 +106,10 @@ expand_environ_var(char *arg)
 
 	char *serch = arg + 1;
 	char *value = NULL;
-	if ((value = getenv(serch)) == NULL)
-		value = (char *) "";
+	value = getenv(serch);
 
 	free(arg);
-	return value;
+	return (value && strlen(value) > 0) ? strdup(value) : NULL;
 }
 
 // parses one single command having into account:
@@ -139,7 +138,8 @@ parse_exec(char *buf_cmd)
 		if (parse_environ_var(c, tok))
 			continue;
 
-		tok = expand_environ_var(tok);
+		if ((tok = expand_environ_var(tok)) == NULL)
+			continue;
 
 		c->argv[argc++] = tok;
 	}
