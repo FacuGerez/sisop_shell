@@ -10,4 +10,6 @@ void print_status_info(struct cmd *cmd);
 
 void print_back_info(struct cmd *back);
 
+void print_back_status_info(pid_t pid, int status);
+
 #endif  // PRINTSTATUS_H

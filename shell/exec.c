@@ -1,5 +1,11 @@
 #include "exec.h"
 
+#include "freecmd.h"
+#include "utils_exec.h"
+#include "types.h"
+
+typedef int pipe_t[2];
+
 // sets "key" with the key part of "arg"
 // and null-terminates it
 //
@@ -65,89 +71,113 @@ set_environ_vars(char **eargv, int eargc)
 	}
 }
 
-// opens the file in which the stdin/stdout/stderr
-// flow will be redirected, and returns
-// the file descriptor
-//
-// Find out what permissions it needs.
-// Does it have to be closed after the execve(2) call?
-//
-// Hints:
-// - if O_CREAT is used, add S_IWUSR and S_IRUSR
-// 	to make it a readable normal file
-static int
-open_redir_fd(char *file, int flags)
-{
-	// Your code here
-
-	return -1;
-}
-
 // executes a command - does not return
-//
-// Hint:
-// - check how the 'cmd' structs are defined
-// 	in types.h
-// - casting could be a good option
 void
 exec_cmd(struct cmd *cmd)
 {
-	// To be used in the different cases
-	struct execcmd *e;
-	struct backcmd *b;
-	struct execcmd *r;
-	struct pipecmd *p;
-
 	switch (cmd->type) {
-	case EXEC:
+	case EXEC: {
 		// spawns a command
-		//
-		// Your code here
-		//
-		// next line should go after fork()
-		set_environ_vars(e->eargv, e->eargc);
+		struct execcmd *e = (struct execcmd *) cmd;
+    
+    set_environ_vars(e->eargv, e->eargc);
 
-		printf("Commands are not yet implemented\n");
-		_exit(-1);
+		run_exec_cmd(e);
+
 		break;
+	}
 
 	case BACK: {
 		// runs a command in background
-		//
-		// Your code here
-		printf("Background process are not yet implemented\n");
-		_exit(-1);
+		struct backcmd *b = (struct backcmd *) cmd;
+
+		exec_cmd(b->c);
+
 		break;
 	}
 
 	case REDIR: {
 		// changes the input/output/stderr flow
-		//
-		// To check if a redirection has to be performed
-		// verify if file name's length (in the execcmd struct)
-		// is greater than zero
-		//
-		// Your code here
-		//
-		// next line should go after fork()
-		set_environ_vars(r->eargv, r->eargc);
+		struct execcmd *r = (struct execcmd *) cmd;
+    
+    set_environ_vars(r->eargv, r->eargc);
 
-		printf("Redirections are not yet implemented\n");
-		_exit(-1);
+		// This case is the only one that might fail if the
+		// file does not exist.
+		if (strlen(r->in_file) &&
+		    redirect_fd(STDIN_FILENO, r->in_file, O_RDONLY) == -1)
+			exit(EXIT_FAILURE);
+
+		// These are safe because if the file does not exist,
+		// then a new file is created.
+		if (strlen(r->out_file))
+			redirect_fd(STDOUT_FILENO,
+			            r->out_file,
+			            O_RDWR | O_CREAT | O_TRUNC);
+
+		if (strlen(r->err_file))
+			redirect_fd(STDERR_FILENO,
+			            r->err_file,
+			            O_RDWR | O_CREAT | O_TRUNC);
+
+		run_exec_cmd(r);
+
 		break;
 	}
 
 	case PIPE: {
 		// pipes two commands
-		//
-		// Your code here
-		printf("Pipes are not yet implemented\n");
+		struct pipecmd *p = (struct pipecmd *) cmd;
+		pid_t left_cpid, right_cpid;
 
-		// free the memory allocated
-		// for the pipe tree structure
-		free_command(parsed_pipe);
+		pipe_t pipe_fd;
+		if (pipe(pipe_fd) == -1) {
+			exit(EXIT_FAILURE);
+		}
 
-		break;
+		if ((left_cpid = fork()) < 0) {
+			exit(EXIT_FAILURE);
+		}
+		if (left_cpid == 0) {
+			// Left process' stdout is redirected
+			// to the pipe's write end.
+			close(pipe_fd[READ]);
+			dup2(pipe_fd[WRITE], STDOUT_FILENO);
+			close(pipe_fd[WRITE]);
+			exec_cmd(p->leftcmd);
+		}
+
+		if ((right_cpid = fork()) < 0) {
+			exit(EXIT_FAILURE);
+		}
+		if (right_cpid == 0) {
+			// Right process' stdin is redirected
+			// to the pipe's read end.
+			close(pipe_fd[WRITE]);
+			dup2(pipe_fd[READ], STDIN_FILENO);
+			close(pipe_fd[READ]);
+			exec_cmd(p->rightcmd);
+		}
+
+		// Parent process does not need these
+		// fds anymore.
+		close(pipe_fd[READ]);
+		close(pipe_fd[WRITE]);
+
+		// Wait for both child processes.
+		waitpid(left_cpid, NULL, 0);
+		waitpid(right_cpid, NULL, 0);
+
+		if (parsed_pipe != NULL) {
+			free_command(parsed_pipe);
+			parsed_pipe = NULL;
+		}
+
+		exit(EXIT_SUCCESS);
+	}
+
+	default: {
+		exit(EXIT_FAILURE);
 	}
 	}
 }
