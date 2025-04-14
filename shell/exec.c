@@ -54,7 +54,21 @@ get_environ_value(char *arg, char *value, int idx)
 static void
 set_environ_vars(char **eargv, int eargc)
 {
-	// edit: lo hace lautaro asique tengo que esperar a eso
+	for (int i = 0; i < eargc; i++) {
+		char *arg = eargv[i];
+		char key[BUFLEN];
+		char value[BUFLEN];
+
+		int eq_idx = block_contains(arg, '=');
+		if (eq_idx == -1) {
+			continue;
+		}
+
+		get_environ_key(arg, key);
+		get_environ_value(arg, value, eq_idx);
+
+		setenv(key, value, 1);  // 1 = overwrite if exists
+	}
 }
 
 // executes a command - does not return
@@ -65,6 +79,8 @@ exec_cmd(struct cmd *cmd)
 	case EXEC: {
 		// spawns a command
 		struct execcmd *e = (struct execcmd *) cmd;
+    
+    set_environ_vars(e->eargv, e->eargc);
 
 		run_exec_cmd(e);
 
@@ -83,6 +99,8 @@ exec_cmd(struct cmd *cmd)
 	case REDIR: {
 		// changes the input/output/stderr flow
 		struct execcmd *r = (struct execcmd *) cmd;
+    
+    set_environ_vars(r->eargv, r->eargc);
 
 		// This case is the only one that might fail if the
 		// file does not exist.
