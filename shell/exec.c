@@ -3,6 +3,7 @@
 #include "freecmd.h"
 #include "utils_exec.h"
 #include "types.h"
+#include "utils.h"
 
 typedef int pipe_t[2];
 
@@ -46,11 +47,6 @@ get_environ_value(char *arg, char *value, int idx)
 
 // sets the environment variables received
 // in the command line
-//
-// Hints:
-// - use 'block_contains()' to
-// 	get the index where the '=' is
-// - 'get_environ_*()' can be useful here
 static void
 set_environ_vars(char **eargv, int eargc)
 {
@@ -59,7 +55,7 @@ set_environ_vars(char **eargv, int eargc)
 		char key[BUFLEN];
 		char value[BUFLEN];
 
-		int eq_idx = block_contains(arg, '=');
+		const int eq_idx = block_contains(arg, '=');
 		if (eq_idx == -1) {
 			continue;
 		}
@@ -79,8 +75,8 @@ exec_cmd(struct cmd *cmd)
 	case EXEC: {
 		// spawns a command
 		struct execcmd *e = (struct execcmd *) cmd;
-    
-    set_environ_vars(e->eargv, e->eargc);
+
+		set_environ_vars(e->eargv, e->eargc);
 
 		run_exec_cmd(e);
 
@@ -89,7 +85,7 @@ exec_cmd(struct cmd *cmd)
 
 	case BACK: {
 		// runs a command in background
-		struct backcmd *b = (struct backcmd *) cmd;
+		const struct backcmd *b = (struct backcmd *) cmd;
 
 		exec_cmd(b->c);
 
@@ -99,8 +95,8 @@ exec_cmd(struct cmd *cmd)
 	case REDIR: {
 		// changes the input/output/stderr flow
 		struct execcmd *r = (struct execcmd *) cmd;
-    
-    set_environ_vars(r->eargv, r->eargc);
+
+		set_environ_vars(r->eargv, r->eargc);
 
 		// This case is the only one that might fail if the
 		// file does not exist.
@@ -127,7 +123,7 @@ exec_cmd(struct cmd *cmd)
 
 	case PIPE: {
 		// pipes two commands
-		struct pipecmd *p = (struct pipecmd *) cmd;
+		const struct pipecmd *p = (struct pipecmd *) cmd;
 		pid_t left_cpid, right_cpid;
 
 		pipe_t pipe_fd;
