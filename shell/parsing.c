@@ -101,9 +101,15 @@ parse_environ_var(struct execcmd *c, char *arg)
 static char *
 expand_environ_var(char *arg)
 {
-	// Your code here
+	if (arg[0] != '$')
+		return arg;
 
-	return arg;
+	char *search = arg + 1;
+	char *value = NULL;
+	value = getenv(search);
+
+	free(arg);
+	return (value && strlen(value) > 0) ? strdup(value) : NULL;
 }
 
 // parses one single command having into account:
@@ -132,7 +138,8 @@ parse_exec(char *buf_cmd)
 		if (parse_environ_var(c, tok))
 			continue;
 
-		tok = expand_environ_var(tok);
+		if ((tok = expand_environ_var(tok)) == NULL)
+			continue;
 
 		c->argv[argc++] = tok;
 	}
