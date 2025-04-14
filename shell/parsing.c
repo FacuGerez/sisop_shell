@@ -91,25 +91,18 @@ parse_environ_var(struct execcmd *c, char *arg)
 // environment value should be performed. Otherwise the same
 // token is returned. If the variable does not exist, an empty string should be
 // returned within the token
-//
-// Hints:
-// - check if the first byte of the argument contains the '$'
-// - expand it and copy the value in 'arg'
-// - remember to check the size of variable's value
-//		It could be greater than the current size of 'arg'
-//		If that's the case, you should realloc 'arg' to the new size.
 static char *
 expand_environ_var(char *arg)
 {
-	if (arg[0] != '$')
+	if (arg == NULL || arg[0] != '$')
 		return arg;
 
-	char *search = arg + 1;
-	char *value = NULL;
+	const char *search = arg + 1;
+	const char *value = NULL;
 	value = getenv(search);
 
 	free(arg);
-	return (value && strlen(value) > 0) ? strdup(value) : NULL;
+	return value && strlen(value) > 0 ? strdup(value) : NULL;
 }
 
 // parses one single command having into account:
