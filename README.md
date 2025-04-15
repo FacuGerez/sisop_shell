@@ -5,7 +5,7 @@
 - [X] pipes simples y múltiples FACU
 - [X] expansión de variables FACU
 - [X] variables de entorno temporarias LAUTARO
-- [ ] psuedovariables LAUTARO
+- [X] psuedovariables LAUTARO
 - [X] comandos built in TAI
 
   - [X] cd
