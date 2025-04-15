@@ -96,11 +96,16 @@ expand_environ_var(char *arg)
 {
 	if (arg == NULL || arg[0] != '$')
 		return arg;
-
-	const char *search = arg + 1;
 	const char *value = NULL;
-	value = getenv(search);
-
+	if(arg[1] == '?'){
+		char status_str[20];
+        	snprintf(status_str, sizeof(status_str), "%d", status);
+        	value = status_str;
+	}
+	else{
+		const char *search = arg + 1;
+		value = getenv(search);
+	}
 	free(arg);
 	return value && strlen(value) > 0 ? strdup(value) : NULL;
 }
