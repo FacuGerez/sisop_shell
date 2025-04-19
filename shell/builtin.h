@@ -3,6 +3,7 @@
 
 #include "defs.h"
 
+extern int status;
 extern char prompt[PRMTLEN];
 
 int cd(char *cmd);

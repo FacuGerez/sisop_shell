@@ -48,6 +48,10 @@ cd(char *cmd)
 		open = chdir(path);
 	}
 
+	if (open != 0) {
+		status = 2;
+		return open;
+	}
 	char directory[BUFLEN];
 	const char *actual = getcwd(directory, sizeof(directory));
 	strncpy(prompt, actual, PRMTLEN - 1);
@@ -63,13 +67,13 @@ cd(char *cmd)
 int
 pwd(char *cmd)
 {
-	if (strcmp(cmd, PWD_COMMAND_KEYWORD) != 0) {
+	if (strncmp(cmd, PWD_COMMAND_KEYWORD, 3) != 0) {
 		return 0;
 	}
 
 	char directory[BUFLEN];
 	if (!getcwd(directory, sizeof(directory))) {
-		printf("ERROR\n");
+		status = 2;
 	} else {
 		printf("%s\n", directory);
 	}
