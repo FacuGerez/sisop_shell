@@ -18,6 +18,9 @@ $(EXEC): $(OBJS)
 valgrind: $(EXEC)
 	valgrind --leak-check=full --show-leak-kinds=all ./$(EXEC)
 
+valgrind-test:
+	valgrind --leak-check=full --show-leak-kinds=all ./tests/run
+
 test:
 	./tests/run
 
