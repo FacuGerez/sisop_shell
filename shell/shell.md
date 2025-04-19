@@ -114,8 +114,12 @@ En algunos de los wrappers de la familia de funciones de exec(3) (las que finali
 
 ### Pseudo-variables
 
----
+- Investigar al menos otras tres variables mágicas estándar, y describir su propósito. 
 
+  - `$_` : Último argumento del último comando ejecutado, ej: `ls -a ; echo $_` imprimiría `-a`.
+  - `$RANDOM` : Devuelve un número aleatorio entre 0 y 32767, ej: `seq $RANDOM | grep '123'`  imprimiría todos los números que contengan 123 entre 0 y el número random generado.
+  - `$SECONDS` : Devuelve el tiempo en segundos en el que se estuvo ejecutando el comando, ej: `echo $SECONDS`  muestra hace cuánto se está ejecutando la shell.
+    
 ### Comandos built-in
 
 ¿Entre cd y pwd, alguno de los dos se podría implementar sin necesidad de ser built-in? ¿Por qué? ¿Si la respuesta es sí, cuál es el motivo, entonces, de hacerlo como built-in? (para esta última pregunta pensar en los built-in como true y false)
